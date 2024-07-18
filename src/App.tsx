@@ -1,7 +1,22 @@
 import React, { FunctionComponent, useState, useEffect, useMemo } from 'react';
 import axios from 'axios';
+import { BrowserRouter, Route, Routes } from 'react-router-dom';
+import DatabaseList from './DBHandler/DatabaseList';
+import DatabaseDetails from './DBHandler/DatabaseDetails';
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
-interface IProps {}
+
+interface IProps { }
+
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: Infinity
+    },
+  },
+});
+
 
 type status = 'WORKING' | 'NOT WORKING' | 'LOADING'
 
@@ -31,7 +46,6 @@ const App: FunctionComponent<IProps> = () => {
     axios.get(fakeServerUrl)
       .then((response) => {
         setServerStatus('WORKING');
-        console.log(response.data);
       })
       .catch(() => {
         setServerStatus('NOT WORKING');
@@ -39,10 +53,24 @@ const App: FunctionComponent<IProps> = () => {
   }, []);
 
   return (
+
     <div>
-      <h5 style={{ color: statusColor }}>
-        {statusMessage}
-      </h5>
+      {serverStatus !== 'WORKING' &&
+        <h5 style={{ color: statusColor }}>
+          {statusMessage}
+        </h5>
+      }
+
+      <div>
+        <BrowserRouter>
+          <QueryClientProvider client={queryClient}>
+            <Routes>
+              <Route path="/details/:id" element={<DatabaseDetails />} />
+              <Route path="/" element={<DatabaseList />} />
+            </Routes>
+          </QueryClientProvider>
+        </BrowserRouter>
+      </div>
     </div>
   );
 }
